@@ -1,4 +1,6 @@
 ﻿using MiPrimerParcial.DAL;
+using Microsoft.EntityFrameworkCore;
+using MiPrimerParcial.DAL;
 using MiPrimerParcial.DAL.Entities;
 using MiPrimerParcial.Domain.Interfaces;
 
@@ -10,22 +12,39 @@ namespace MiPrimerParcial.Domain.Services
 
         public CountrySerice(DataBaseContext context)
         {
-            _context = context
+            _context = context;
         }
 
         public async Task<IEnumerable<Country>> GetCountriesAsync()
         {
-            var countries = await _context.Countries.ToListAsync();
+            try
+            {
+                var countries = await _context.Countries.ToListAsync();
 
-            return countries;
+                return countries;
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw new Exception(dbUpdateException.InnerException?.Message ??
+                    dbUpdateException.Message);
+            }
         }
 
         public async Task<Country> GetCountryByIdAsync(Guid id)
         {
-            var country = await _context.Countries.FirstOrDefaultAsync(c => c.Id == id);
-            var country1 = await _context.Countries.FindAsync(id);
-            var country2 = await _context.Countries.FirstAsync(c => c.Id == id);
-            return country;
+            try
+            {
+                var country = await _context.Countries.FirstOrDefaultAsync(c => c.Id == id);
+                var country1 = await _context.Countries.FindAsync(id);
+                var country2 = await _context.Countries.FirstAsync(c => c.Id == id);
+
+                return country;
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw new Exception(dbUpdateException.InnerException?.Message ??
+                    dbUpdateException.Message);
+            }
         }
 
         public async Task<Country> CreateCountryAsync(Country country)
@@ -39,21 +58,51 @@ namespace MiPrimerParcial.Domain.Services
                 await _context.SaveChangesAsync();
                 return country;
             }
-            catch (DbUptadeException dbUptadeException)
+            catch (DbUpdateException dbUpdateException)
             {
-                throw new Exception(dbUptadeException.InnerException?.Message ??
-                    dbUptadeException.Message);
+                throw new Exception(dbUpdateException.InnerException?.Message ??
+                    dbUpdateException.Message);
             }
         }
 
-        public Task<Country> EditCountryAsync(Country country)
+        public async Task<Country> EditCountryAsync(Country country)
         {
-            throw new NotImplementedException();
+            try
+            {
+                country.ModifiedDate = DateTime.Now;
+
+                _context.Countries.Update(country);
+                await _context.SaveChangesAsync();
+
+                return country;
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw new Exception(dbUpdateException.InnerException?.Message ??
+                    dbUpdateException.Message);
+            }
         }
 
-        public Task<Country> DeleteCountryAsync(Guid id)
+        public async Task<Country> DeleteCountryAsync(Guid id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var country = await GetCountryByIdAsync(id);
+
+                if (country == null)
+                {
+                    return null;
+                }
+                _context.Countries.Remove(country);
+                await _context.SaveChangesAsync();
+
+                return country;
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                throw new Exception(dbUpdateException.InnerException?.Message ??
+                    dbUpdateException.Message);
+            }
         }
     }
 }

@@ -2,15 +2,21 @@
 
 namespace MiPrimerParcial.DAL.Entities
 {
-    public class Country : AuditBase
+    public class State : AuditBase
     {
-        [Display(Name = "Pais")]
+        [Display(Name = "Estado/Departamento")]
         [MaxLength(50, ErrorMessage = "El campo {0} debe tener maximo de {1} caracter")]
         [Required(ErrorMessage = "El campo {0} es obligatorio")]
+
         public string Name { get; set; }
 
-        [Display(Name = "Estados/Departamentos")]
+        [Display(Name = "Pais")]
+        public Country? Country { get; set; }
 
-        public ICollection<State>? States { get; set; }
+        [Display(Name = "Id Pais")]
+
+        public Guid CountryId { get; set; }
+
+
     }
 }
